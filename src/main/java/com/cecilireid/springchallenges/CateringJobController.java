@@ -2,6 +2,7 @@ package com.cecilireid.springchallenges;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -37,23 +38,58 @@ public class CateringJobController {
         }
     }
 
-    public List<CateringJob> getCateringJobsByStatus(Status status) {
-        return null;
+    @GetMapping("/status/{status}")
+    @ResponseBody
+    public List<CateringJob> getCateringJobsByStatus(@PathVariable String status) {
+        Status result = Status.valueOf(status.toUpperCase());
+        if(cateringJobRepository.findByStatus(result) != null) {
+            return cateringJobRepository.findByStatus(result);
+        } else {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
     }
 
-    public CateringJob createCateringJob(CateringJob job) {
-        return null;
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    public CateringJob createCateringJob(@RequestBody CateringJob job) {
+        return cateringJobRepository.save(job);
     }
 
-    public CateringJob updateCateringJob(CateringJob cateringJob, Long id) {
-        return null;
+    @PutMapping("/{id}")
+    @ResponseBody
+    public CateringJob updateCateringJob(@RequestBody CateringJob cateringJob, @PathVariable Long id) {
+        if (cateringJobRepository.existsById(id)) {
+            cateringJob.setId(id);
+            return cateringJobRepository.save(cateringJob);
+        } else {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
     }
 
-    public CateringJob patchCateringJob(Long id, JsonNode json) {
-        return null;
+    @PatchMapping("/{id}")
+    @ResponseBody
+    public CateringJob patchCateringJob(@PathVariable Long id,@RequestBody JsonNode json) {
+        if (cateringJobRepository.existsById(id)) {
+            CateringJob cateringJob = cateringJobRepository.findById(id).get();
+            if (json.has("menu")) {
+                cateringJob.setMenu(json.get("menu").asText());
+            }
+            return cateringJobRepository.save(cateringJob);
+        } else {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        }
     }
 
+    @GetMapping("/surprise")
     public Mono<String> getSurpriseImage() {
-        return null;
+        this.client = WebClient.builder().baseUrl(IMAGE_API).build();
+        return this.client.get().retrieve().bodyToMono(String.class);
+    }
+
+    @ExceptionHandler(HttpClientErrorException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleException(HttpClientErrorException e) {
+        return e.getMessage();
     }
 }

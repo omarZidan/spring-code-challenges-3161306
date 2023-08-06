@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SpringChallengesApplication<spring-challenges>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.cecilireid.springchallenges.SpringChallengesApplication",
+            "projectName": "spring-challenges",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
